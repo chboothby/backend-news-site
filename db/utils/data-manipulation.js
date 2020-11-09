@@ -1,7 +1,7 @@
 // extract any functions you are using to manipulate your data, into this file
-exports.formatArticles = (articleData) => {
+exports.formatDateAndTime = (data) => {
   // take created_at key and change it to correct format yyyy-mm-dd hh:mm:ss
-  return articleData.map(({ created_at, ...article }) => {
+  return data.map(({ created_at, ...restOfData }) => {
     const date = new Date(created_at).toLocaleString();
     const dateArr = date.split("/");
     const year = dateArr[2].substr(0, 4);
@@ -15,13 +15,13 @@ exports.formatArticles = (articleData) => {
     const formattedDate = `${year}-${month}-${day} ${time}`;
 
     return {
-      ...article,
+      ...restOfData,
       created_at: formattedDate,
     };
   });
 };
 
-exports.changeKey = (commentData) => {
+exports.changeKeyToAuthor = (commentData) => {
   return commentData.map(({ created_by, ...restOfData }) => {
     return {
       ...restOfData,

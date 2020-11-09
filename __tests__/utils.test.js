@@ -1,15 +1,15 @@
 const {
-  formatArticles,
-  changeKey,
+  formatDateAndTime,
+  changeKeyToAuthorToAuthor,
   createArticleRef,
   formatComments,
 } = require("../db/utils/data-manipulation");
 
-describe("formatArticles", () => {
+describe("formatDateAndTime", () => {
   it("Returns a new empty array when passed an empty array", () => {
     const input = [];
-    expect(formatArticles(input)).toEqual([]);
-    expect(formatArticles(input)).not.toBe(input);
+    expect(formatDateAndTime(input)).toEqual([]);
+    expect(formatDateAndTime(input)).not.toBe(input);
   });
   it("Returns an array of objects containing the expected keys", () => {
     const input = [
@@ -22,7 +22,7 @@ describe("formatArticles", () => {
         votes: 100,
       },
     ];
-    expect(formatArticles(input)).toEqual([
+    expect(formatDateAndTime(input)).toEqual([
       {
         title: expect.any(String),
         topic: expect.any(String),
@@ -44,7 +44,7 @@ describe("formatArticles", () => {
         votes: 100,
       },
     ];
-    expect(formatArticles(input)).toEqual([
+    expect(formatDateAndTime(input)).toEqual([
       {
         title: "Living in the shadow of a great man",
         topic: "mitch",
@@ -57,11 +57,11 @@ describe("formatArticles", () => {
   });
 });
 
-describe("changeKey", () => {
+describe("changeKeyToAuthor", () => {
   it("Returns a new empty array when passed an empty array", () => {
     const input = [];
-    expect(changeKey(input)).toEqual([]);
-    expect(changeKey(input)).not.toBe(input);
+    expect(changeKeyToAuthor(input)).toEqual([]);
+    expect(changeKeyToAuthor(input)).not.toBe(input);
   });
   it("Returns an array of objects containing the expected keys", () => {
     const input = [
@@ -75,7 +75,7 @@ describe("changeKey", () => {
         created_at: 1468087638932,
       },
     ];
-    expect(changeKey(input)).toEqual([
+    expect(changeKeyToAuthor(input)).toEqual([
       {
         body: expect.any(String),
         belongs_to: expect.any(String),
@@ -97,7 +97,7 @@ describe("changeKey", () => {
         created_at: 1468087638932,
       },
     ];
-    changeKey(input);
+    changeKeyToAuthor(input);
     expect(input).toEqual([
       {
         body:

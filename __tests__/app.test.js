@@ -19,6 +19,7 @@ describe("/api", () => {
     });
     return Promise.all(requestPromises);
   });
+  /********************* TOPICS ********************/
   describe("/topics", () => {
     test("GET topics responds with all the topics in the database", () => {
       return request(app)
@@ -30,4 +31,18 @@ describe("/api", () => {
         });
     });
   });
+  /********************* USERS ********************/
+  describe("/users", () => {
+    test("GET users by username responds with a user object", () => {
+      return request(app)
+        .get("/api/users/butter_bridge")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.user).toEqual(expect.any(Object));
+        });
+    });
+    test("GET users by username's object has the expected keys", () => {});
+  });
+  /********************* ARTICLES ********************/
+  /********************* COMMENTS ********************/
 });
