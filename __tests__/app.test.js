@@ -74,7 +74,29 @@ describe("/api", () => {
   describe("/articles", () => {
     describe.only("GET", () => {
       test("GET ALL articles responds with an array of article objects", () => {
-        return request(app).get("/api/articles").expect(200);
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toEqual(expect.any(Object));
+          });
+      });
+      test("GET ALL articles' objects have the expected keys", () => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(Object.keys(articles[0])).toEqual([
+              "author",
+              "title",
+              "article_id",
+              "topic",
+              "created_at",
+              "votes",
+              "comment_count",
+            ]);
+            expect(articles[10].comment_count).toBe("13");
+          });
       });
       test("GET article by article id responds with an article object", () => {
         return request(app)

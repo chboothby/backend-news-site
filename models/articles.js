@@ -22,7 +22,7 @@ exports.fetchArticleById = (article_id) => {
     )
 
     .where("articles.article_id", "=", article_id)
-    .sum("comments.article_id AS comment_count")
+    .count("comments.article_id AS comment_count")
     .then((article) => {
       if (article.length === 0)
         return Promise.reject({ status: 404, msg: "Article not found" });
@@ -44,4 +44,25 @@ exports.updateArticleById = (article_id, inc_votes) => {
     .then(() => {
       return this.fetchArticleById(article_id);
     });
+};
+
+exports.fetchAllArticles = () => {
+  return connection
+    .select(
+      "articles.author",
+      "title",
+      "articles.article_id",
+      "topic",
+      "articles.created_at",
+      "articles.votes"
+    )
+    .from("articles")
+    .leftJoin("comments", "comments.article_id", "articles.article_id")
+    .groupBy(
+      "articles.author",
+      "articles.title",
+      "articles.body",
+      "articles.article_id"
+    )
+    .count("comments.article_id AS comment_count");
 };
