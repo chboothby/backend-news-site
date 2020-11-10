@@ -72,7 +72,7 @@ describe("/api", () => {
   });
   /********************* ARTICLES ********************/
   describe("/articles", () => {
-    describe.only("GET", () => {
+    describe("GET", () => {
       test("GET ALL articles responds with an array of article objects", () => {
         return request(app)
           .get("/api/articles")
@@ -95,10 +95,46 @@ describe("/api", () => {
               "votes",
               "comment_count",
             ]);
-            expect(articles[10].comment_count).toBe("13");
           });
       });
-      test("GET article by article id responds with an article object", () => {
+      test("GET ALL articles accepts sort_by query which defaults to date, desc", () => {
+        return request(app)
+          .get(`/api/articles`)
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("created_at", { descending: true });
+          });
+      });
+      test("GET ALL articles accepts sort_by query", () => {
+        const queries = ["author", "topic", "title"];
+        const promiseArr = queries.map((query) => {
+          return request(app)
+            .get(`/api/articles?sort_by=${query}`)
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toBeSortedBy(query, { descending: true });
+            });
+        });
+        return Promise.all(promiseArr);
+      });
+      test("GET ALL articles accepts order query", () => {
+        const queries = ["asc", "desc"];
+        const promiseArr = queries.map((query) => {
+          let order = "";
+          if (query === "desc") {
+            order = { descending: true };
+          }
+
+          return request(app)
+            .get(`/api/articles?sort_by=author&order=${query}`)
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toBeSortedBy("author", order);
+            });
+        });
+        return Promise.all(promiseArr);
+      });
+      test("GET article by article ID responds with an article object", () => {
         return request(app)
           .get("/api/articles/3")
           .expect(200)
@@ -106,7 +142,7 @@ describe("/api", () => {
             expect(article).toEqual(expect.any(Object));
           });
       });
-      test("GET article by article id contains the expected keys", () => {
+      test("GET article by article ID contains the expected keys", () => {
         return request(app)
           .get("/api/articles/3")
           .expect(200)

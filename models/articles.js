@@ -46,7 +46,7 @@ exports.updateArticleById = (article_id, inc_votes) => {
     });
 };
 
-exports.fetchAllArticles = () => {
+exports.fetchAllArticles = (sort_by, order, author, topic) => {
   return connection
     .select(
       "articles.author",
@@ -64,5 +64,6 @@ exports.fetchAllArticles = () => {
       "articles.body",
       "articles.article_id"
     )
-    .count("comments.article_id AS comment_count");
+    .count("comments.article_id AS comment_count")
+    .orderBy(sort_by || "created_at", order || "desc");
 };
