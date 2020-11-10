@@ -1,8 +1,11 @@
 exports.handlePSQLErrors = (err, req, res, next) => {
   console.log(err.code);
-  const badReqCodes = ["22P02", "42703"];
+  const badReqCodes = ["22P02", "42703", "23503"];
+  const missingDataCodes = ["23502"];
   if (badReqCodes.includes(err.code)) {
     res.status(400).send({ msg: "Bad request" });
+  } else if (missingDataCodes.includes(err.code)) {
+    res.status(400).send({ msg: "Incomplete request" });
   } else next(err);
 };
 exports.handleCustomErrors = (err, req, res, next) => {

@@ -1,6 +1,7 @@
 // process.env.NODE_ENV = "test";
 const app = require("../app");
 const request = require("supertest");
+const sorted = require("jest-sorted");
 const connection = require("../db/connection");
 
 describe("/api", () => {
@@ -71,7 +72,10 @@ describe("/api", () => {
   });
   /********************* ARTICLES ********************/
   describe("/articles", () => {
-    describe("GET", () => {
+    describe.only("GET", () => {
+      test("GET ALL articles responds with an array of article objects", () => {
+        return request(app).get("/api/articles").expect(200);
+      });
       test("GET article by article id responds with an article object", () => {
         return request(app)
           .get("/api/articles/3")
@@ -136,6 +140,65 @@ describe("/api", () => {
           });
       });
     });
+    describe("/comments", () => {
+      describe("GET", () => {
+        test("GET all comments responds with an a comments object with a key containing an array of comments", () => {
+          return request(app)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(Array.isArray(comments)).toBe(true);
+            });
+        });
+        test("GET all comments responds with an array of objects containing the expected keys", () => {
+          return request(app)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(Object.keys(comments[0])).toEqual([
+                "comment_id",
+                "author",
+                "votes",
+                "created_at",
+                "body",
+              ]);
+            });
+        });
+        test("GET all comments accepts sort_by query which is set to created_by as default", () => {
+          return request(app)
+            .get("/api/articles/1/comments")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments).toBeSortedBy("created_at");
+            });
+        });
+        test("GET all comments accepts a sort_by query", () => {
+          return request(app)
+            .get("/api/articles/1/comments?sort_by=author")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments).toBeSortedBy("author");
+            });
+        });
+        test("GET all comments accepts an order query which can be set to asc or desc", () => {
+          return request(app)
+            .get("/api/articles/1/comments?sort_by=author&order=desc")
+            .expect(200)
+            .then(({ body: { comments } }) => {
+              expect(comments).toBeSortedBy("author", { descending: true });
+            });
+        });
+      });
+
+      describe("POST", () => {
+        test("POST comment responds with the posted comment", () => {
+          return request(app)
+            .post("/api/articles/3/comments")
+            .send({ username: "lurker", body: "Terrible article" })
+            .expect(201);
+        });
+      });
+    });
     describe("Error handling", () => {
       test("404 - article not found", () => {
         return request(app)
@@ -169,6 +232,15 @@ describe("/api", () => {
           .expect(400)
           .then(({ body: { msg } }) => {
             expect(msg).toBe("Bad request");
+          });
+      });
+      test("400 - bad request, missing data from comment post request", () => {
+        return request(app)
+          .post("/api/articles/3/comments")
+          .send({})
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Incomplete request");
           });
       });
     });
