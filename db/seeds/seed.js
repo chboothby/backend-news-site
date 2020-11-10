@@ -21,16 +21,16 @@ exports.seed = function (knex) {
       return knex.insert(topicData).into("topics").returning("*");
     })
     .then((topicsRows) => {
-      console.log(`inserted ${topicsRows.length} rows into topics table`);
+      // console.log(`inserted ${topicsRows.length} rows into topics table`);
       return knex.insert(userData).into("users").returning("*");
     })
     .then((userRows) => {
-      console.log(`inserted ${userRows.length} into users table`);
+      // console.log(`inserted ${userRows.length} rows into users table`);
       const formattedArticles = formatDateAndTime(articleData);
       return knex.insert(formattedArticles).into("articles").returning("*");
     })
     .then((articleRows) => {
-      console.log(`inserted ${articleRows.length} into articles table`);
+      // console.log(`inserted ${articleRows.length} into articles table`);
       const changedKey = changeKeyToAuthor(commentData);
       const formattedTime = formatDateAndTime(changedKey);
       const articleRef = createArticleRef(articleRows);
@@ -38,6 +38,6 @@ exports.seed = function (knex) {
       return knex.insert(formattedComments).into("comments").returning("*");
     })
     .then((formattedComments) => {
-      console.log(`inserted ${formattedComments.length} into comments table`);
+      // console.log(`inserted ${formattedComments.length} rows into comments table`);
     });
 };

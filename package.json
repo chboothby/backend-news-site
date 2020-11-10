@@ -4,11 +4,11 @@
   "description": "bc-nc-news",
   "main": "index.js",
   "scripts": {
+    "test": "jest --watch app.test.js",
+    "dev": "nodemon listen.js",
+    "start": "node listen.js",
+    "seed": "knex seed:run",
     "setup-dbs": "psql -f ./db/setup.sql",
-    "seed-dev": "knex seed:run",
-    "seed-test": "NODE_ENV=test knex seed:run",
-    "test-dev": "jest",
-    "test-app": "npm run seed-test migrate-latest && jest app.test.js",
     "migrate-make": "knex migrate:make",
     "migrate-latest": "knex migrate:latest",
     "migrate-rollback": "knex migrate:rollback"
