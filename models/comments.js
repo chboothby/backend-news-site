@@ -30,3 +30,7 @@ exports.updateCommentById = (comment_id, inc_votes) => {
       } else return comments[0];
     });
 };
+
+exports.removeCommentById = (comment_id) => {
+  return connection("comments").where("comment_id", "=", comment_id).del();
+};

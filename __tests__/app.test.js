@@ -34,6 +34,18 @@ describe("/api", () => {
           expect(topics.length).toBe(3);
         });
     });
+    test("405 - invalid method", () => {
+      const methods = ["post", "delete", "put", "patch"];
+      const promiseArr = methods.map((method) => {
+        return request(app)
+          [method]("/api/topics")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Invalid method");
+          });
+      });
+      return Promise.all(promiseArr);
+    });
   });
   /********************* USERS ********************/
   describe("/users", () => {
@@ -67,6 +79,18 @@ describe("/api", () => {
           .then(({ body: { msg } }) => {
             expect(msg).toBe("User not found");
           });
+      });
+      test("405 - invalid method type /users", () => {
+        const methods = ["patch", "delete", "put", "post"];
+        const promiseArr = methods.map((method) => {
+          return request(app)
+            [method]("/api/users/butter_bridge")
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Invalid method");
+            });
+        });
+        return Promise.all(promiseArr);
       });
     });
   });
@@ -218,7 +242,135 @@ describe("/api", () => {
           });
       });
     });
-    describe("/comments", () => {
+  });
+  describe("Error handling", () => {
+    test("404 - article not found", () => {
+      return request(app)
+        .get("/api/articles/300")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Article not found");
+        });
+    });
+    test("400 - bad request, not a valid id", () => {
+      return request(app)
+        .get("/api/articles/notAnId")
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+    test("400 - bad request, invalid patch request", () => {
+      return request(app)
+        .patch("/api/articles/3")
+        .send({ notAProperty: 7 })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Invalid patch request");
+        });
+    });
+    test("400 - bad request, incorrect data type for patch request", () => {
+      return request(app)
+        .patch("/api/articles/3")
+        .send({ inc_votes: "NaN" })
+        .expect(400)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("Bad request");
+        });
+    });
+
+    test("404 no articles found when trying to filter by non-existent author", () => {
+      return request(app)
+        .get("/api/articles?author=notAUser")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("No articles found");
+        });
+    });
+    test("404 no articles found when trying to filter by non-existent topic", () => {
+      return request(app)
+        .get("/api/articles?topic=notATopic")
+        .expect(404)
+        .then(({ body: { msg } }) => {
+          expect(msg).toBe("No articles found");
+        });
+    });
+    test("405 - invalid method type /articles", () => {
+      const methods = ["post", "patch", "delete", "put"];
+      const promiseArr = methods.map((method) => {
+        return request(app)
+          [method]("/api/articles")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Invalid method");
+          });
+      });
+      return Promise.all(promiseArr);
+    });
+    test("405 - invalid method type /articles/:article_id", () => {
+      const methods = ["post", "delete", "put"];
+      const promiseArr = methods.map((method) => {
+        return request(app)
+          [method]("/api/articles/3")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Invalid method");
+          });
+      });
+      return Promise.all(promiseArr);
+    });
+    test("405 - invalid method type /articles/:article_id/comments", () => {
+      const methods = ["patch", "delete", "put"];
+      const promiseArr = methods.map((method) => {
+        return request(app)
+          [method]("/api/articles/3/comments")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Invalid method");
+          });
+      });
+      return Promise.all(promiseArr);
+    });
+  });
+  /********************* COMMENTS ********************/
+  describe("/comments", () => {
+    describe("PATCH", () => {
+      test("PATCH comments by id responds with the updated comment", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send({ inc_votes: 1 })
+          .expect(201)
+          .then(({ body: { comment } }) => {
+            expect(comment).toEqual(expect.any(Object));
+          });
+      });
+      test("PATCH comments by id's updated comment should have votes property modified by specified amount", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send({ inc_votes: -1 })
+          .expect(201)
+          .then(({ body: { comment } }) => {
+            expect(comment.votes).toBe(15);
+          });
+      });
+    });
+    describe("DELETE", () => {
+      test("DELETE comment by ID should remove comment from db and respond with 204", () => {
+        return request(app)
+          .delete("/api/comments/1")
+          .expect(204)
+          .then(() => {
+            return connection
+              .select("*")
+              .from("comments")
+              .where("comment_id", "=", 1);
+          })
+          .then((response) => {
+            expect(response.length).toBe(0);
+          });
+      });
+    });
+    describe("/articles/:article_id/comments", () => {
       describe("GET", () => {
         test("GET all comments responds with an a comments object with a key containing an array of comments", () => {
           return request(app)
@@ -267,7 +419,6 @@ describe("/api", () => {
             });
         });
       });
-
       describe("POST", () => {
         test("POST comment responds with the posted comment", () => {
           return request(app)
@@ -278,38 +429,13 @@ describe("/api", () => {
       });
     });
     describe("Error handling", () => {
-      test("404 - article not found", () => {
+      test("404 - comment_id does not exist", () => {
         return request(app)
-          .get("/api/articles/300")
+          .patch("/api/comments/10000")
+          .send({ inc_votes: -1 })
           .expect(404)
           .then(({ body: { msg } }) => {
-            expect(msg).toBe("Article not found");
-          });
-      });
-      test("400 - bad request, not a valid id", () => {
-        return request(app)
-          .get("/api/articles/notAnId")
-          .expect(400)
-          .then(({ body: { msg } }) => {
-            expect(msg).toBe("Bad request");
-          });
-      });
-      test("400 - bad request, invalid patch request", () => {
-        return request(app)
-          .patch("/api/articles/3")
-          .send({ notAProperty: 7 })
-          .expect(400)
-          .then(({ body: { msg } }) => {
-            expect(msg).toBe("Invalid patch request");
-          });
-      });
-      test("400 - bad request, incorrect data type for patch request", () => {
-        return request(app)
-          .patch("/api/articles/3")
-          .send({ inc_votes: "NaN" })
-          .expect(400)
-          .then(({ body: { msg } }) => {
-            expect(msg).toBe("Bad request");
+            expect(msg).toBe("Comment not found");
           });
       });
       test("400 - bad request, missing data from comment post request", () => {
@@ -321,55 +447,29 @@ describe("/api", () => {
             expect(msg).toBe("Incomplete request");
           });
       });
-      test("404 no articles found when trying to filter by non-existent author", () => {
-        return request(app)
-          .get("/api/articles?author=notAUser")
-          .expect(404)
-          .then(({ body: { msg } }) => {
-            expect(msg).toBe("No articles found");
-          });
+      test("405 - invalid method type /comments/:comment_id", () => {
+        const methods = ["post", "get", "put"];
+        const promiseArr = methods.map((method) => {
+          return request(app)
+            [method]("/api/comments/3")
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Invalid method");
+            });
+        });
+        return Promise.all(promiseArr);
       });
-      test("404 no articles found when trying to filter by non-existent topic", () => {
-        return request(app)
-          .get("/api/articles?topic=notATopic")
-          .expect(404)
-          .then(({ body: { msg } }) => {
-            expect(msg).toBe("No articles found");
-          });
-      });
-    });
-  });
-  /********************* COMMENTS ********************/
-  describe("/comments", () => {
-    describe.only("PATCH", () => {
-      test("PATCH comments by id responds with the updated comment", () => {
-        return request(app)
-          .patch("/api/comments/1")
-          .send({ inc_votes: 1 })
-          .expect(201)
-          .then(({ body: { comment } }) => {
-            expect(comment).toEqual(expect.any(Object));
-          });
-      });
-      test("PATCH comments by id's updated comment should have votes property modified by specified amount", () => {
-        return request(app)
-          .patch("/api/comments/1")
-          .send({ inc_votes: -1 })
-          .expect(201)
-          .then(({ body: { comment } }) => {
-            expect(comment.votes).toBe(15);
-          });
-      });
-    });
-    describe.only("Error handling", () => {
-      test("404 - comment_id does not exist", () => {
-        return request(app)
-          .patch("/api/comments/10000")
-          .send({ inc_votes: -1 })
-          .expect(404)
-          .then(({ body: { msg } }) => {
-            expect(msg).toBe("Comment not found");
-          });
+      test("405 - invalid method type /articles/:article_id/:comments", () => {
+        const methods = ["post", "get", "put"];
+        const promiseArr = methods.map((method) => {
+          return request(app)
+            [method]("/api/comments/3")
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Invalid method");
+            });
+        });
+        return Promise.all(promiseArr);
       });
     });
   });
