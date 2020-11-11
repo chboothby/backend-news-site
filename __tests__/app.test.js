@@ -11,12 +11,12 @@ describe("/api", () => {
   beforeEach(() => {
     return connection.seed.run();
   });
-  test("GET /api responds with a JSON object describing all available endpoints", () => {
+  test.only("GET /api responds with a JSON object describing all available endpoints", () => {
     return request(app)
       .get("/api")
       .expect(200)
       .then(({ body: { API } }) => {
-        expect(JSON.parse(API)).toEqual(expect.any(Object));
+        expect(API).toEqual(expect.any(Object));
       });
   });
   test("Returns 404 if passed invalid path", () => {
