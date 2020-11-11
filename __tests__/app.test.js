@@ -329,7 +329,7 @@ describe("/api", () => {
             expect(msg).toBe("No articles found");
           });
       });
-      test.only("404 no articles found when trying to filter by non-existent topic", () => {
+      test("404 no articles found when trying to filter by non-existent topic", () => {
         return request(app)
           .get("/api/articles?topic=notATopic")
           .expect(404)
@@ -340,4 +340,37 @@ describe("/api", () => {
     });
   });
   /********************* COMMENTS ********************/
+  describe("/comments", () => {
+    describe.only("PATCH", () => {
+      test("PATCH comments by id responds with the updated comment", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send({ inc_votes: 1 })
+          .expect(201)
+          .then(({ body: { comment } }) => {
+            expect(comment).toEqual(expect.any(Object));
+          });
+      });
+      test("PATCH comments by id's updated comment should have votes property modified by specified amount", () => {
+        return request(app)
+          .patch("/api/comments/1")
+          .send({ inc_votes: -1 })
+          .expect(201)
+          .then(({ body: { comment } }) => {
+            expect(comment.votes).toBe(15);
+          });
+      });
+    });
+    describe.only("Error handling", () => {
+      test("404 - comment_id does not exist", () => {
+        return request(app)
+          .patch("/api/comments/10000")
+          .send({ inc_votes: -1 })
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Comment not found");
+          });
+      });
+    });
+  });
 });
