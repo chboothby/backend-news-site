@@ -67,3 +67,13 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
       } else return articles;
     });
 };
+
+exports.createNewArticle = (articleInfo) => {
+  return connection
+    .insert(articleInfo)
+    .into("articles")
+    .returning("*")
+    .then((article) => {
+      return article[0];
+    });
+};

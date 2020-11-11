@@ -4,7 +4,10 @@ exports.createNewComment = (article_id, username, body) => {
   return connection
     .insert({ article_id, author: username, body })
     .into("comments")
-    .returning("*");
+    .returning("*")
+    .then((comment) => {
+      return comment[0];
+    });
 };
 
 exports.fetchAllComments = (article_id, sort_by, order) => {

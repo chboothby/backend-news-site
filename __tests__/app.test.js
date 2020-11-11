@@ -11,6 +11,14 @@ describe("/api", () => {
   beforeEach(() => {
     return connection.seed.run();
   });
+  test("GET /api responds with a JSON object describing all available endpoints", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body: { API } }) => {
+        expect(JSON.parse(API)).toEqual(expect.any(Object));
+      });
+  });
   test("Returns 404 if passed invalid path", () => {
     const methods = ["get", "post", "delete", "patch"];
     const requestPromises = methods.map((method) => {
@@ -204,6 +212,24 @@ describe("/api", () => {
           });
       });
     });
+    describe("POST", () => {
+      test("POST an article responds with the created article", () => {
+        return request(app)
+          .post("/api/articles")
+          .send({
+            title: "New Article",
+            author: "butter_bridge",
+            body: "article text here",
+            topic: "mitch",
+          })
+          .expect(201)
+          .then(({ body: { article } }) => {
+            expect(article).toEqual(expect.any(Object));
+            expect(article).toHaveProperty("title", "New Article");
+            expect(article).toHaveProperty("article_id");
+          });
+      });
+    });
     describe("PATCH", () => {
       test("PATCH article returns an article object", () => {
         return request(app)
@@ -242,96 +268,131 @@ describe("/api", () => {
           });
       });
     });
-  });
-  describe("Error handling", () => {
-    test("404 - article not found", () => {
-      return request(app)
-        .get("/api/articles/300")
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Article not found");
-        });
-    });
-    test("400 - bad request, not a valid id", () => {
-      return request(app)
-        .get("/api/articles/notAnId")
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        });
-    });
-    test("400 - bad request, invalid patch request", () => {
-      return request(app)
-        .patch("/api/articles/3")
-        .send({ notAProperty: 7 })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Invalid patch request");
-        });
-    });
-    test("400 - bad request, incorrect data type for patch request", () => {
-      return request(app)
-        .patch("/api/articles/3")
-        .send({ inc_votes: "NaN" })
-        .expect(400)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("Bad request");
-        });
-    });
 
-    test("404 no articles found when trying to filter by non-existent author", () => {
-      return request(app)
-        .get("/api/articles?author=notAUser")
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("No articles found");
+    describe("Error handling", () => {
+      test("404 - article not found", () => {
+        return request(app)
+          .get("/api/articles/300")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Article not found");
+          });
+      });
+      test("400 - bad request, not a valid id", () => {
+        return request(app)
+          .get("/api/articles/notAnId")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Bad request");
+          });
+      });
+      test("400 - bad request, invalid patch request", () => {
+        return request(app)
+          .patch("/api/articles/3")
+          .send({ notAProperty: 7 })
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Invalid patch request");
+          });
+      });
+      test("400 - bad request, incorrect data type for patch request", () => {
+        return request(app)
+          .patch("/api/articles/3")
+          .send({ inc_votes: "NaN" })
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Bad request");
+          });
+      });
+
+      test("404 no articles found when trying to filter by non-existent author", () => {
+        return request(app)
+          .get("/api/articles?author=notAUser")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("No articles found");
+          });
+      });
+      test("404 no articles found when trying to filter by non-existent topic", () => {
+        return request(app)
+          .get("/api/articles?topic=notATopic")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("No articles found");
+          });
+      });
+      test("405 - invalid method type /articles", () => {
+        const methods = ["patch", "delete", "put"];
+        const promiseArr = methods.map((method) => {
+          return request(app)
+            [method]("/api/articles")
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Invalid method");
+            });
         });
-    });
-    test("404 no articles found when trying to filter by non-existent topic", () => {
-      return request(app)
-        .get("/api/articles?topic=notATopic")
-        .expect(404)
-        .then(({ body: { msg } }) => {
-          expect(msg).toBe("No articles found");
+        return Promise.all(promiseArr);
+      });
+      test("405 - invalid method type /articles/:article_id", () => {
+        const methods = ["post", "delete", "put"];
+        const promiseArr = methods.map((method) => {
+          return request(app)
+            [method]("/api/articles/3")
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Invalid method");
+            });
         });
-    });
-    test("405 - invalid method type /articles", () => {
-      const methods = ["post", "patch", "delete", "put"];
-      const promiseArr = methods.map((method) => {
-        return request(app)
-          [method]("/api/articles")
-          .expect(405)
-          .then(({ body: { msg } }) => {
-            expect(msg).toBe("Invalid method");
-          });
+        return Promise.all(promiseArr);
       });
-      return Promise.all(promiseArr);
-    });
-    test("405 - invalid method type /articles/:article_id", () => {
-      const methods = ["post", "delete", "put"];
-      const promiseArr = methods.map((method) => {
-        return request(app)
-          [method]("/api/articles/3")
-          .expect(405)
-          .then(({ body: { msg } }) => {
-            expect(msg).toBe("Invalid method");
-          });
+      test("405 - invalid method type /articles/:article_id/comments", () => {
+        const methods = ["patch", "delete", "put"];
+        const promiseArr = methods.map((method) => {
+          return request(app)
+            [method]("/api/articles/3/comments")
+            .expect(405)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Invalid method");
+            });
+        });
+        return Promise.all(promiseArr);
       });
-      return Promise.all(promiseArr);
-    });
-    test("405 - invalid method type /articles/:article_id/comments", () => {
-      const methods = ["patch", "delete", "put"];
-      const promiseArr = methods.map((method) => {
-        return request(app)
-          [method]("/api/articles/3/comments")
-          .expect(405)
+      test("400 - bad article post request", () => {
+        const emptyBody = request(app)
+          .post("/api/articles")
+          .send({})
+          .expect(400)
           .then(({ body: { msg } }) => {
-            expect(msg).toBe("Invalid method");
+            expect(msg).toBe("Incomplete request");
           });
+        const notAUser = request(app)
+          .post("/api/articles")
+          .send({
+            title: "New Article",
+            author: "not-a-user",
+            body: "article text here",
+            topic: "mitch",
+          })
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Bad request");
+          });
+        const missingBody = request(app)
+          .post("/api/articles")
+          .send({
+            title: "Article Title",
+            author: "butter_bridge",
+            topic: "mitch",
+          })
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Incomplete request");
+          });
+        return Promise.all([emptyBody, notAUser, missingBody]);
       });
-      return Promise.all(promiseArr);
     });
   });
+
   /********************* COMMENTS ********************/
   describe("/comments", () => {
     describe("PATCH", () => {
@@ -424,7 +485,17 @@ describe("/api", () => {
           return request(app)
             .post("/api/articles/3/comments")
             .send({ username: "lurker", body: "Terrible article" })
-            .expect(201);
+            .expect(201)
+            .then(({ body: { comment } }) => {
+              expect(comment).toMatchObject({
+                comment_id: 19,
+                author: "lurker",
+                article_id: 3,
+                votes: 0,
+                created_at: expect.any(String),
+                body: "Terrible article",
+              });
+            });
         });
       });
     });

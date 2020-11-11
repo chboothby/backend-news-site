@@ -1,16 +1,27 @@
 {
   "GET /api": {
-    "description": "serves up a json representation of all the available endpoints of the api"
+    "description": "Serves up a json representation of all the available endpoints of the api"
   },
   "GET /api/topics": {
-    "description": "serves an array of all topics",
+    "description": "Serves an array of all topics",
     "queries": [],
     "exampleResponse": {
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "GET /api/users:username": {
+    "description": "Serves up an object with the given usernames data",
+    "queries": [],
+    "exampleResponse": {
+      "user": {
+        "username": "user_A",
+        "name": "firstName",
+        "avatar-url": "https://some-avatar-pic.png"
+      }
+    }
+  },
   "GET /api/articles": {
-    "description": "serves an array of all topics",
+    "description": "Serves an array of all topics",
     "queries": ["author", "topic", "sort_by", "order"],
     "exampleResponse": {
       "articles": [
@@ -23,5 +34,116 @@
         }
       ]
     }
+  },
+  "POST /api/articles": {
+    "description": "Adds a new article and responds with the new article",
+    "requestBodyExample": {
+      "title": "New Article",
+      "author": "author-id",
+      "body": "article text here",
+      "topic": "random-topic"
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 13,
+        "title": "New Article",
+        "author": "author-id",
+        "body": "article text here",
+        "topic": "random-topic",
+        "created_at": "2020-11-11T15:28:31.483Z",
+        "votes": 0
+      }
+    }
+  },
+
+  "DELETE /api/articles/:article_id": {
+    "description": "Deletes the article matching the given id "
+  },
+
+  "PATCH /api/articles/:article_id": {
+    "description": "Updates the votes on the article by a given amount",
+    "requestBodyExample": {
+      "inc_votes": 10
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 1,
+        "title": "article-title",
+        "author": "author-name",
+        "body": "Text from the article...",
+        "topic": "random-topic",
+        "created_at": 1527695953341,
+        "votes": 10,
+        "comment_count": 5
+      }
+    }
+  },
+
+  "GET /api/articles/:article_id": {
+    "description": "Responds with an object containing the article matching the given article id",
+    "queries": [],
+    "exampleResponse": {
+      "article": {
+        "article_id": 1,
+        "title": "article-title",
+        "author": "author-name",
+        "body": "Text from the article...",
+        "topic": "random-topic",
+        "created_at": 1527695953341,
+        "votes": 10,
+        "comment_count": 5
+      }
+    }
+  },
+
+  "POST /api/articles/:article_id/comments": {
+    "description": "Adds a new comment to the article matching the given article id, responds with the new comment",
+    "requestBodyExample": {
+      "username": "user_A",
+      "body": "Text from the comment..."
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 19,
+        "author": "lurker",
+        "article_id": 3,
+        "votes": 0,
+        "created_at": "2020-11-11T14:32:08.083Z",
+        "body": "Text from the comment..."
+      }
+    }
+  },
+  "GET api/articles/:article_id/comments": {
+    "description": "Responds with an array containing the comment objects associated with the given article id",
+    "queries": ["sort_by", "order"],
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 1,
+          "author": "author-name",
+          "votes": 4,
+          "created_at": "2020-11-11T14:32:08.083Z",
+          "body": "Text from the comment..."
+        }
+      ]
+    }
+  },
+  "PATCH /api/comments/:comment_id": {
+    "description": "Increments or decrements a comments votes by given amount and returns new comment object",
+    "requestBodyExample": {
+      "inc_votes": -1
+    },
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 1,
+        "author": "author-name",
+        "votes": 4,
+        "created_at": "2020-11-11T14:32:08.083Z",
+        "body": "Text from the comment..."
+      }
+    }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "Deletes the comment with the given id"
   }
 }
