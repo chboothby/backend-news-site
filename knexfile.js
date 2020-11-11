@@ -1,3 +1,4 @@
+const { DB_URL } = process.env;
 const ENV = process.env.NODE_ENV || "development";
 
 const baseConfig = {
@@ -16,6 +17,14 @@ const customConfig = {
       database: "nc_news",
       user: "clara",
       password: "password",
+    },
+  },
+  production: {
+    connection: {
+      connectionString: DB_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     },
   },
   test: {
