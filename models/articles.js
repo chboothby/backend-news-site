@@ -1,25 +1,12 @@
+const { queryBuilder } = require("../db/connection");
 const connection = require("../db/connection");
 
 exports.fetchArticleById = (article_id) => {
   return connection
-    .select(
-      "users.name AS author",
-      "title",
-      "articles.article_id",
-      "articles.body",
-      "topic",
-      "articles.created_at",
-      "articles.votes"
-    )
+    .select("articles.*")
     .from("articles")
     .leftJoin("comments", "articles.article_id", "comments.article_id")
-    .join("users", "users.username", "articles.author")
-    .groupBy(
-      "users.name",
-      "articles.title",
-      "articles.body",
-      "articles.article_id"
-    )
+    .groupBy("articles.article_id")
 
     .where("articles.article_id", "=", article_id)
     .count("comments.article_id AS comment_count")
@@ -56,6 +43,14 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
       "articles.created_at",
       "articles.votes"
     )
+    .modify((queryBuilder) => {
+      if (author) {
+        queryBuilder.where("articles.author", "LIKE", author);
+      }
+      if (topic) {
+        queryBuilder.where("articles.topic", "LIKE", topic);
+      }
+    })
     .from("articles")
     .leftJoin("comments", "comments.article_id", "articles.article_id")
     .groupBy(
@@ -65,5 +60,10 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
       "articles.article_id"
     )
     .count("comments.article_id AS comment_count")
-    .orderBy(sort_by || "created_at", order || "desc");
+    .orderBy(sort_by || "created_at", order || "desc")
+    .then((articles) => {
+      if (articles.length === 0) {
+        return Promise.reject({ status: 404, msg: "No articles found" });
+      } else return articles;
+    });
 };

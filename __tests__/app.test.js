@@ -95,6 +95,7 @@ describe("/api", () => {
               "votes",
               "comment_count",
             ]);
+            expect(articles[0].comment_count).toEqual("13");
           });
       });
       test("GET ALL articles accepts sort_by query which defaults to date, desc", () => {
@@ -134,6 +135,24 @@ describe("/api", () => {
         });
         return Promise.all(promiseArr);
       });
+      test("GET ALL articles accepts an author filter which filters all articles by selected username", () => {
+        return request(app)
+          .get("/api/articles?author=icellusedkars")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(6);
+            expect(articles[0].author).toBe("icellusedkars");
+          });
+      });
+      test("GET ALL articles accepts topic filter which filters all articles by selected topic", () => {
+        return request(app)
+          .get("/api/articles?topic=mitch")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(11);
+            expect(articles[0].topic).toBe("mitch");
+          });
+      });
       test("GET article by article ID responds with an article object", () => {
         return request(app)
           .get("/api/articles/3")
@@ -148,15 +167,16 @@ describe("/api", () => {
           .expect(200)
           .then(({ body: { article } }) => {
             expect(Object.keys(article)).toEqual([
-              "author",
-              "title",
               "article_id",
+              "title",
+              "author",
               "body",
               "topic",
               "created_at",
               "votes",
               "comment_count",
             ]);
+            expect(article.comment_count).toBe("0");
           });
       });
     });
@@ -177,9 +197,9 @@ describe("/api", () => {
           .expect(201)
           .then(({ body: { article } }) => {
             expect(Object.keys(article)).toEqual([
-              "author",
-              "title",
               "article_id",
+              "title",
+              "author",
               "body",
               "topic",
               "created_at",
@@ -299,6 +319,22 @@ describe("/api", () => {
           .expect(400)
           .then(({ body: { msg } }) => {
             expect(msg).toBe("Incomplete request");
+          });
+      });
+      test("404 no articles found when trying to filter by non-existent author", () => {
+        return request(app)
+          .get("/api/articles?author=notAUser")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("No articles found");
+          });
+      });
+      test.only("404 no articles found when trying to filter by non-existent topic", () => {
+        return request(app)
+          .get("/api/articles?topic=notATopic")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("No articles found");
           });
       });
     });

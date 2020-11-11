@@ -1,5 +1,5 @@
 exports.handlePSQLErrors = (err, req, res, next) => {
-  console.log(err.code);
+  //console.log(err.code);
   const badReqCodes = ["22P02", "42703", "23503"];
   const missingDataCodes = ["23502"];
   if (badReqCodes.includes(err.code)) {
