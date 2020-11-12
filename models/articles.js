@@ -34,7 +34,15 @@ exports.updateArticleById = (article_id, inc_votes) => {
     });
 };
 
-exports.fetchAllArticles = (sort_by, order, author, topic) => {
+exports.fetchAllArticles = (
+  sort_by,
+  order,
+  author,
+  topic,
+  limit = 10,
+  page
+) => {
+  const offset = (page - 1) * limit || 0;
   return connection
     .select(
       "articles.author",
@@ -62,13 +70,16 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
     )
     .count("comments.article_id AS comment_count")
     .orderBy(sort_by || "created_at", order || "desc")
+    .limit(limit)
+    .offset(offset)
     .then((articles) => {
       if (articles.length === 0) {
         if (author) {
           return Promise.all([articles, checkAuthorExists(author), true]);
         } else if (topic) {
           return Promise.all([articles, true, checkTopicExists(topic)]);
-        }
+        } else
+          return Promise.reject({ status: 404, msg: "Page limit exceeded" });
       } else return [articles, true, true];
     })
     .then((result) => {

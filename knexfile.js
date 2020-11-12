@@ -36,4 +36,4 @@ const customConfig = {
   },
 };
 
-module.exports = { ...customConfig[ENV], ...baseConfig };
+module.exports = { ...customConfig[ENV], ...baseConfig, attachPaginate };

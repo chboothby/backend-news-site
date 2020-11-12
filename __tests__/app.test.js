@@ -269,6 +269,57 @@ describe("/api", () => {
           });
       });
     });
+    describe.only("PAGINATION", () => {
+      test("GET /articles takes an articles per page limit which is set to 10 as default", () => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(10);
+          });
+      });
+      test("GET /articles returns specified number of articles", () => {
+        return request(app)
+          .get("/api/articles?limit=3")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(3);
+          });
+      });
+      test.only("GET articles returns next page of results when passed a page query", () => {
+        return request(app)
+          .get("/api/articles?page=2")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(2);
+            expect(Object.values(articles[0])).toEqual([
+              "icellusedkars",
+              "Am I a cat?",
+              11,
+              "mitch",
+              "1978-11-25T12:21:54.000Z",
+              0,
+              "0",
+            ]);
+          });
+      });
+      test.only("404 - page limit exceeded", () => {
+        return request(app)
+          .get("/api/articles?page=3")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Page limit exceeded");
+          });
+      });
+      test.only("400 - invalid page number", () => {
+        return request(app)
+          .get("/api/articles?page=-3")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Bad request");
+          });
+      });
+    });
 
     describe("Error handling", () => {
       test("404 - article not found", () => {
@@ -305,7 +356,7 @@ describe("/api", () => {
             expect(msg).toBe("Bad request");
           });
       });
-      // return empty array if user/topic exists but no articles paper topic, lurker
+
       test("200 no articles found but user exists", () => {
         return request(app)
           .get("/api/articles?author=lurker")
