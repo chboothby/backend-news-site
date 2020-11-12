@@ -67,7 +67,7 @@ describe("/api", () => {
       });
       return Promise.all(promisesArr);
     });
-    test.only("Extra keys on post request are ignored", () => {
+    test("Extra keys on post request are ignored", () => {
       return request(app)
         .post("/api/topics")
         .send({ slug: "too", description: "many", extra: "keys" })
@@ -95,6 +95,20 @@ describe("/api", () => {
   /********************* USERS ********************/
   describe("/users", () => {
     describe("GET", () => {
+      test("GET ALL users responds with an array of user objects", () => {
+        return request(app)
+          .get("/api/users")
+          .expect(200)
+          .then(({ body: { users } }) => {
+            expect(users).toEqual(expect.any(Array));
+            expect(users.length).toBe(4);
+            expect(Object.keys(users[0])).toEqual([
+              "username",
+              "name",
+              "avatar_url",
+            ]);
+          });
+      });
       test("GET users by username responds with a user object", () => {
         return request(app)
           .get("/api/users/butter_bridge")
@@ -116,6 +130,52 @@ describe("/api", () => {
           });
       });
     });
+    describe("POST", () => {
+      test("POST new user responds with 201 and added user", () => {
+        return request(app)
+          .post("/api/users")
+          .send({
+            username: "user-a",
+            name: "name-a",
+          })
+          .expect(201)
+          .then(({ body: { user } }) => {
+            expect(user).toHaveProperty("name");
+            expect(user).toHaveProperty("username");
+            expect(user).toHaveProperty("avatar_url");
+          });
+      });
+      test("400 - incomplete post request", () => {
+        const incompletePostReqs = [
+          {},
+          { name: "name-a" },
+          { username: "user-a" },
+        ];
+        const promiseArr = incompletePostReqs.map((postReq) => {
+          return request(app)
+            .post("/api/users")
+            .send(postReq)
+            .expect(400)
+            .then(({ body: { msg } }) => {
+              expect(msg).toBe("Incomplete request");
+            });
+        });
+        return Promise.all(promiseArr);
+      });
+      test("Extra keys on post request are ignored", () => {
+        return request(app)
+          .post("/api/users")
+          .send({ name: "too", username: "many", extra: "keys" })
+          .expect(201)
+          .then(({ body: { user } }) => {
+            expect(user).toMatchObject({
+              name: "too",
+              username: "many",
+              avatar_url: null,
+            });
+          });
+      });
+    });
     describe("Error handling", () => {
       test("404 - user not found", () => {
         return request(app)
@@ -126,7 +186,7 @@ describe("/api", () => {
           });
       });
       test("405 - invalid method type /users", () => {
-        const methods = ["patch", "delete", "put", "post"];
+        const methods = ["patch", "delete", "put"];
         const promiseArr = methods.map((method) => {
           return request(app)
             [method]("/api/users/butter_bridge")
@@ -219,7 +279,7 @@ describe("/api", () => {
           .get("/api/articles?topic=mitch")
           .expect(200)
           .then(({ body: { articles } }) => {
-            expect(articles.length).toBe(11);
+            expect(articles.length).toBe(10);
             expect(articles[0].topic).toBe("mitch");
           });
       });

@@ -22,6 +22,23 @@
       }
     }
   },
+  "GET /api/users": {
+    "description": "Responds with array of all user objects"
+  },
+  "POST /api/users": {
+    "description": "Adds a new user and responds with added user",
+    "requestBodyExample": {
+      "name": "name-a",
+      "username": "user-a"
+    },
+    "exampleResponse": {
+      "user": {
+        "name": "name-a",
+        "username": "user-a",
+        "avatar-url": "null"
+      }
+    }
+  },
   "GET /api/users:username": {
     "description": "Serves up an object with the given usernames data",
     "queries": [],

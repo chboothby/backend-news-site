@@ -20,3 +20,17 @@ exports.checkAuthorExists = (author) => {
       return users.length === 0 ? false : true;
     });
 };
+
+exports.createNewUser = ({ username, name, avatar_url }) => {
+  return connection
+    .insert({ username, name, avatar_url })
+    .into("users")
+    .returning("*")
+    .then((user) => {
+      return user[0];
+    });
+};
+
+exports.fetchAllUsers = () => {
+  return connection.select("*").from("users");
+};
