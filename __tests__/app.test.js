@@ -42,6 +42,43 @@ describe("/api", () => {
           expect(topics.length).toBe(3);
         });
     });
+    test("POST topic adds a  new topic to db and responds with new topic", () => {
+      return request(app)
+        .post("/api/topics")
+        .send({ slug: "coffee", description: "why drink anything else?" })
+        .expect(201)
+        .then(({ body: { topic } }) => {
+          expect(topic).toMatchObject({
+            slug: "coffee",
+            description: "why drink anything else?",
+          });
+        });
+    });
+    test("400 - bad post request", () => {
+      const incompletePostReqs = [{}, { description: "incomplete" }];
+      const promisesArr = incompletePostReqs.map((postReq) => {
+        return request(app)
+          .post("/api/topics")
+          .send(postReq)
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Incomplete request");
+          });
+      });
+      return Promise.all(promisesArr);
+    });
+    test.only("Extra keys on post request are ignored", () => {
+      return request(app)
+        .post("/api/topics")
+        .send({ slug: "too", description: "many", extra: "keys" })
+        .expect(201)
+        .then(({ body: { topic } }) => {
+          expect(topic).toMatchObject({
+            slug: "too",
+            description: "many",
+          });
+        });
+    });
     test("405 - invalid method", () => {
       const methods = ["post", "delete", "put", "patch"];
       const promiseArr = methods.map((method) => {
@@ -231,7 +268,7 @@ describe("/api", () => {
           });
       });
     });
-    describe.only("DELETE", () => {
+    describe("DELETE", () => {
       test("DELETE article by id removes article from db and returns 204", () => {
         return request(app)
           .delete("/api/articles/1")
@@ -447,7 +484,7 @@ describe("/api", () => {
         return Promise.all(promiseArr);
       });
       test("405 - invalid method type /articles/:article_id", () => {
-        const methods = ["post", "delete", "put"];
+        const methods = ["post", "put"];
         const promiseArr = methods.map((method) => {
           return request(app)
             [method]("/api/articles/3")
@@ -505,7 +542,6 @@ describe("/api", () => {
       });
     });
   });
-
   /********************* COMMENTS ********************/
   describe("/comments", () => {
     describe("PATCH", () => {

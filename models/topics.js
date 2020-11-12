@@ -12,3 +12,13 @@ exports.checkTopicExists = (topic) => {
       return topics.length === 0 ? false : true;
     });
 };
+
+exports.createNewTopic = ({ slug, description }) => {
+  return connection
+    .insert({ slug, description })
+    .into("topics")
+    .returning("*")
+    .then((topic) => {
+      return topic[0];
+    });
+};
