@@ -107,3 +107,14 @@ exports.createNewArticle = (articleInfo) => {
       return article[0];
     });
 };
+
+exports.removeArticleById = (article_id) => {
+  return connection("articles")
+    .where("article_id", "=", article_id)
+    .del()
+    .then((response) => {
+      return response === 1
+        ? response
+        : Promise.reject({ status: 404, msg: "Article does not exist" });
+    });
+};

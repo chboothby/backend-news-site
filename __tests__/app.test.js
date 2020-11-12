@@ -231,6 +231,52 @@ describe("/api", () => {
           });
       });
     });
+    describe.only("DELETE", () => {
+      test("DELETE article by id removes article from db and returns 204", () => {
+        return request(app)
+          .delete("/api/articles/1")
+          .expect(204)
+          .then(() => {
+            return connection
+              .select("*")
+              .from("articles")
+              .where("article_id", "=", 1);
+          })
+          .then((response) => {
+            expect(response.length).toBe(0);
+          });
+      });
+      test("DELETE article by id also removes associated comments", () => {
+        return request(app)
+          .delete("/api/articles/1")
+          .expect(204)
+          .then(() => {
+            return connection
+              .select("*")
+              .from("comments")
+              .where("article_id", "=", 1);
+          })
+          .then((response) => {
+            expect(response.length).toBe(0);
+          });
+      });
+      test("404 - article not found if attempts to delete article that doesnt exist", () => {
+        return request(app)
+          .delete("/api/articles/1000")
+          .expect(404)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Article does not exist");
+          });
+      });
+      test("400 - invalid id type", () => {
+        return request(app)
+          .delete("/api/articles/notAnId")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("Bad request");
+          });
+      });
+    });
     describe("PATCH", () => {
       test("PATCH article returns an article object", () => {
         return request(app)
@@ -320,7 +366,6 @@ describe("/api", () => {
           });
       });
     });
-
     describe("Error handling", () => {
       test("404 - article not found", () => {
         return request(app)
@@ -390,7 +435,7 @@ describe("/api", () => {
           });
       });
       test("405 - invalid method type /articles", () => {
-        const methods = ["patch", "delete", "put"];
+        const methods = ["patch", "put"];
         const promiseArr = methods.map((method) => {
           return request(app)
             [method]("/api/articles")
@@ -547,7 +592,7 @@ describe("/api", () => {
               expect(comments).toBeSortedBy("author", { descending: true });
             });
         });
-        describe.only("PAGINATION", () => {
+        describe("PAGINATION", () => {
           test("GET all comments has a default limit of 10 comments", () => {
             return request(app)
               .get("/api/articles/1/comments")

@@ -22,7 +22,7 @@
   },
   "GET /api/articles": {
     "description": "Serves an array of all topics",
-    "queries": ["author", "topic", "sort_by", "order"],
+    "queries": ["author", "topic", "sort_by", "order", "limit", "page"],
     "exampleResponse": {
       "articles": [
         {
@@ -57,7 +57,7 @@
   },
 
   "DELETE /api/articles/:article_id": {
-    "description": "Deletes the article matching the given id "
+    "description": "Deletes the article matching the given id and that articles comments"
   },
 
   "PATCH /api/articles/:article_id": {
@@ -115,7 +115,7 @@
   },
   "GET api/articles/:article_id/comments": {
     "description": "Responds with an array containing the comment objects associated with the given article id",
-    "queries": ["sort_by", "order"],
+    "queries": ["sort_by", "order", "limit", "page"],
     "exampleResponse": {
       "comments": [
         {
