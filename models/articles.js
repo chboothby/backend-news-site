@@ -64,19 +64,26 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
     .orderBy(sort_by || "created_at", order || "desc")
     .then((articles) => {
       if (articles.length === 0) {
-        return Promise.all([articles, checkAuthorExists(author)]);
-        //return Promise.reject({ status: 404, msg: "No articles found" });
-      } else return [articles, true];
+        if (author) {
+          return Promise.all([articles, checkAuthorExists(author), true]);
+        } else if (topic) {
+          return Promise.all([articles, true, checkTopicExists(topic)]);
+        }
+      } else return [articles, true, true];
     })
     .then((result) => {
-      const [articles, authorExists] = result;
+      const [articles, authorExists, topicExists] = result;
       if (!authorExists) {
         return Promise.reject({
           status: 404,
           msg: "Author does not exist",
         });
-      }
-      return articles;
+      } else if (!topicExists) {
+        return Promise.reject({
+          status: 404,
+          msg: "Topic does not exist",
+        });
+      } else return articles;
     });
 };
 

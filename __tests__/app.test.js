@@ -11,7 +11,7 @@ describe("/api", () => {
   beforeEach(() => {
     return connection.seed.run();
   });
-  test.only("GET /api responds with a JSON object describing all available endpoints", () => {
+  test("GET /api responds with a JSON object describing all available endpoints", () => {
     return request(app)
       .get("/api")
       .expect(200)
@@ -54,7 +54,6 @@ describe("/api", () => {
       });
       return Promise.all(promiseArr);
     });
-    // test topic does not exist
   });
   /********************* USERS ********************/
   describe("/users", () => {
@@ -307,7 +306,7 @@ describe("/api", () => {
           });
       });
       // return empty array if user/topic exists but no articles paper topic, lurker
-      test.only("200 no articles found but user exists", () => {
+      test("200 no articles found but user exists", () => {
         return request(app)
           .get("/api/articles?author=lurker")
           .expect(200)
@@ -315,7 +314,7 @@ describe("/api", () => {
             expect(articles).toEqual([]);
           });
       });
-      test.only("404 no articles found when trying to filter by non-existent author", () => {
+      test("404 no articles found when trying to filter by non-existent author", () => {
         return request(app)
           .get("/api/articles?author=notAUser")
           .expect(404)
@@ -323,12 +322,20 @@ describe("/api", () => {
             expect(msg).toBe("Author does not exist");
           });
       });
+      test("200 no articles found but topic exists", () => {
+        return request(app)
+          .get("/api/articles?topic=paper")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toEqual([]);
+          });
+      });
       test("404 no articles found when trying to filter by non-existent topic", () => {
         return request(app)
           .get("/api/articles?topic=notATopic")
           .expect(404)
           .then(({ body: { msg } }) => {
-            expect(msg).toBe("No articles found");
+            expect(msg).toBe("Topic does not exist");
           });
       });
       test("405 - invalid method type /articles", () => {

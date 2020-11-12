@@ -4,6 +4,11 @@ exports.fetchAllTopics = () => {
 };
 
 exports.checkTopicExists = (topic) => {
-  console.log(topic);
-  return connection.select("*").from("topics").where("slug", "LIKE", topic);
+  return connection
+    .select("*")
+    .from("topics")
+    .where("slug", "LIKE", topic)
+    .then((topics) => {
+      return topics.length === 0 ? false : true;
+    });
 };
