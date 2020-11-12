@@ -54,6 +54,7 @@ describe("/api", () => {
       });
       return Promise.all(promiseArr);
     });
+    // test topic does not exist
   });
   /********************* USERS ********************/
   describe("/users", () => {
@@ -174,6 +175,7 @@ describe("/api", () => {
           .then(({ body: { articles } }) => {
             expect(articles.length).toBe(6);
             expect(articles[0].author).toBe("icellusedkars");
+            // check all articles from this author
           });
       });
       test("GET ALL articles accepts topic filter which filters all articles by selected topic", () => {
@@ -304,13 +306,21 @@ describe("/api", () => {
             expect(msg).toBe("Bad request");
           });
       });
-
-      test("404 no articles found when trying to filter by non-existent author", () => {
+      // return empty array if user/topic exists but no articles paper topic, lurker
+      test.only("200 no articles found but user exists", () => {
+        return request(app)
+          .get("/api/articles?author=lurker")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toEqual([]);
+          });
+      });
+      test.only("404 no articles found when trying to filter by non-existent author", () => {
         return request(app)
           .get("/api/articles?author=notAUser")
           .expect(404)
           .then(({ body: { msg } }) => {
-            expect(msg).toBe("No articles found");
+            expect(msg).toBe("Author does not exist");
           });
       });
       test("404 no articles found when trying to filter by non-existent topic", () => {

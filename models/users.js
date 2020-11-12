@@ -10,3 +10,13 @@ exports.fetchUserByUsername = (username) => {
       return user[0];
     });
 };
+
+exports.checkAuthorExists = (author) => {
+  return connection
+    .select("*")
+    .from("users")
+    .where("username", "LIKE", author)
+    .then((users) => {
+      return users.length === 0 ? false : true;
+    });
+};

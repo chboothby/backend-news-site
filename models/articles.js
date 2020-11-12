@@ -1,5 +1,6 @@
-const { queryBuilder } = require("../db/connection");
 const connection = require("../db/connection");
+const { checkTopicExists } = require("./topics");
+const { checkAuthorExists } = require("./users");
 
 exports.fetchArticleById = (article_id) => {
   return connection
@@ -63,8 +64,19 @@ exports.fetchAllArticles = (sort_by, order, author, topic) => {
     .orderBy(sort_by || "created_at", order || "desc")
     .then((articles) => {
       if (articles.length === 0) {
-        return Promise.reject({ status: 404, msg: "No articles found" });
-      } else return articles;
+        return Promise.all([articles, checkAuthorExists(author)]);
+        //return Promise.reject({ status: 404, msg: "No articles found" });
+      } else return [articles, true];
+    })
+    .then((result) => {
+      const [articles, authorExists] = result;
+      if (!authorExists) {
+        return Promise.reject({
+          status: 404,
+          msg: "Author does not exist",
+        });
+      }
+      return articles;
     });
 };
 
