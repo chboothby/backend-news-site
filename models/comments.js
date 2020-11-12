@@ -10,12 +10,15 @@ exports.createNewComment = (article_id, username, body) => {
     });
 };
 
-exports.fetchAllComments = (article_id, sort_by, order) => {
+exports.fetchAllComments = (article_id, sort_by, order, limit = 10, page) => {
+  const offset = (page - 1) * limit || 0;
   return connection
     .select("comment_id", "author", "votes", "created_at", "body")
     .from("comments")
     .where("article_id", "=", article_id)
-    .orderBy(sort_by || "created_at", order || "asc");
+    .orderBy(sort_by || "created_at", order || "asc")
+    .limit(limit)
+    .offset(offset);
 };
 
 exports.updateCommentById = (comment_id, inc_votes) => {

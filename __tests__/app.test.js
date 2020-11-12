@@ -269,7 +269,7 @@ describe("/api", () => {
           });
       });
     });
-    describe.only("PAGINATION", () => {
+    describe("PAGINATION", () => {
       test("GET /articles takes an articles per page limit which is set to 10 as default", () => {
         return request(app)
           .get("/api/articles")
@@ -286,7 +286,7 @@ describe("/api", () => {
             expect(articles.length).toBe(3);
           });
       });
-      test.only("GET articles returns next page of results when passed a page query", () => {
+      test("GET articles returns next page of results when passed a page query", () => {
         return request(app)
           .get("/api/articles?page=2")
           .expect(200)
@@ -303,7 +303,7 @@ describe("/api", () => {
             ]);
           });
       });
-      test.only("404 - page limit exceeded", () => {
+      test("404 - page limit exceeded", () => {
         return request(app)
           .get("/api/articles?page=3")
           .expect(404)
@@ -311,7 +311,7 @@ describe("/api", () => {
             expect(msg).toBe("Page limit exceeded");
           });
       });
-      test.only("400 - invalid page number", () => {
+      test("400 - invalid page number", () => {
         return request(app)
           .get("/api/articles?page=-3")
           .expect(400)
@@ -546,6 +546,49 @@ describe("/api", () => {
             .then(({ body: { comments } }) => {
               expect(comments).toBeSortedBy("author", { descending: true });
             });
+        });
+        describe.only("PAGINATION", () => {
+          test("GET all comments has a default limit of 10 comments", () => {
+            return request(app)
+              .get("/api/articles/1/comments")
+              .expect(200)
+              .then(({ body: { comments } }) => {
+                expect(comments.length).toBe(10);
+              });
+          });
+          test("GET all comments limit can be set with a query", () => {
+            return request(app)
+              .get("/api/articles/1/comments?limit=3")
+              .expect(200)
+              .then(({ body: { comments } }) => {
+                expect(comments.length).toBe(3);
+              });
+          });
+          test("GET all comments returns next page of results when passed a page query", () => {
+            return request(app)
+              .get("/api/articles/1/comments?limit=3&page=2")
+              .expect(200)
+              .then(({ body: { comments } }) => {
+                expect(comments.length).toBe(3);
+                expect(comments[0].body).toBe("Ambidextrous marsupial");
+              });
+          });
+          test("400 bad request if invalid page number", () => {
+            return request(app)
+              .get("/api/articles/1/comments?limit=3&page=0")
+              .expect(400)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe("Bad request");
+              });
+          });
+          test("404 page limited exceeded", () => {
+            return request(app)
+              .get("/api/articles/1/comments?limit=10&page=4")
+              .expect(404)
+              .then(({ body: { msg } }) => {
+                expect(msg).toBe("Page limit exceeded");
+              });
+          });
         });
       });
       describe("POST", () => {
