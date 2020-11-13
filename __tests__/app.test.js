@@ -283,7 +283,7 @@ describe("/api", () => {
             expect(articles[0].topic).toBe("mitch");
           });
       });
-      test.only("GET articles responds with an object containing a total_count key", () => {
+      test("GET articles responds with an object containing a total_count key", () => {
         return request(app)
           .get("/api/articles")
           .expect(200)
@@ -292,7 +292,7 @@ describe("/api", () => {
             expect(total_count).toBe(12);
           });
       });
-      test.only("GET articles total_count key ignores limit", () => {
+      test("GET articles total_count key ignores limit", () => {
         return request(app)
           .get("/api/articles?limit=3")
           .expect(200)
@@ -390,7 +390,7 @@ describe("/api", () => {
           .delete("/api/articles/notAnId")
           .expect(400)
           .then(({ body: { msg } }) => {
-            expect(msg).toBe("Bad request");
+            expect(msg).toBe("Invalid input type");
           });
       });
     });
@@ -460,7 +460,7 @@ describe("/api", () => {
               "Am I a cat?",
               11,
               "mitch",
-              "1978-11-25T12:21:54.000Z",
+              expect.any(String),
               0,
               "0",
             ]);
@@ -479,7 +479,7 @@ describe("/api", () => {
           .get("/api/articles?page=-3")
           .expect(400)
           .then(({ body: { msg } }) => {
-            expect(msg).toBe("Bad request");
+            expect(msg).toBe("Invalid page request");
           });
       });
     });
@@ -497,7 +497,7 @@ describe("/api", () => {
           .get("/api/articles/notAnId")
           .expect(400)
           .then(({ body: { msg } }) => {
-            expect(msg).toBe("Bad request");
+            expect(msg).toBe("Invalid input type");
           });
       });
       test("400 - bad request, invalid patch request", () => {
@@ -515,7 +515,7 @@ describe("/api", () => {
           .send({ inc_votes: "NaN" })
           .expect(400)
           .then(({ body: { msg } }) => {
-            expect(msg).toBe("Bad request");
+            expect(msg).toBe("Invalid input type");
           });
       });
 
@@ -739,7 +739,7 @@ describe("/api", () => {
               .get("/api/articles/1/comments?limit=3&page=0")
               .expect(400)
               .then(({ body: { msg } }) => {
-                expect(msg).toBe("Bad request");
+                expect(msg).toBe("Invalid page request");
               });
           });
           test("404 page limited exceeded", () => {

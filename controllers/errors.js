@@ -1,12 +1,18 @@
 exports.handlePSQLErrors = (err, req, res, next) => {
-  console.log(err.code, "err code");
-  const badReqCodes = ["22P02", "42703", "23503", "2201X"];
-  const missingReqBodyCodes = ["23502"];
-  if (badReqCodes.includes(err.code)) {
-    res.status(400).send({ msg: "Bad request" });
-  } else if (missingReqBodyCodes.includes(err.code)) {
-    res.status(400).send({ msg: "Incomplete request" });
-  } else next(err);
+  const codes = {
+    "22P02": { status: 400, msg: "Invalid input type" },
+    42703: { status: 400, msg: "Invalid input type" },
+    23503: { status: 400, msg: "Bad request" },
+    "2201X": { status: 400, msg: "Invalid page request" },
+    23502: { status: 400, msg: "Incomplete request" },
+  };
+
+  for (code in codes) {
+    if (err.code == code) {
+      res.status(codes[code].status).send({ msg: codes[code].msg });
+    }
+  }
+  next(err);
 };
 exports.handleCustomErrors = (err, req, res, next) => {
   if (err.status) {
@@ -15,7 +21,6 @@ exports.handleCustomErrors = (err, req, res, next) => {
 };
 
 exports.handleInternalErrors = (err, req, res, next) => {
-  console.log(`Unhandled error: ${err}`);
   res.status(500).send({ msg: "Internal server error" });
 };
 exports.send404 = (req, res, next) => {

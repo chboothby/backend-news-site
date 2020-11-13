@@ -1,4 +1,5 @@
 const { fetchAllTopics, createNewTopic } = require("../models/topics");
+
 exports.getAllTopics = (req, res, next) => {
   fetchAllTopics()
     .then((topics) => {
