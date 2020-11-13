@@ -4,6 +4,7 @@ const {
   fetchAllArticles,
   createNewArticle,
   removeArticleById,
+  fetchArticleCount,
 } = require("../models/articles");
 exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
@@ -26,9 +27,14 @@ exports.patchArticleById = (req, res, next) => {
 
 exports.getAllArticles = (req, res, next) => {
   const { sort_by, order, author, topic, limit, page } = req.query;
-  fetchAllArticles(sort_by, order, author, topic, limit, page)
-    .then((articles) => {
-      res.status(200).send({ articles });
+  Promise.all([
+    fetchAllArticles(sort_by, order, author, topic, limit, page),
+    fetchArticleCount(author, topic),
+  ])
+    .then((result) => {
+      const articles = result[0];
+      const total_count = result[1];
+      res.status(200).send({ articles, total_count });
     })
     .catch(next);
 };

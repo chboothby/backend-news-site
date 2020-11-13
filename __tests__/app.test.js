@@ -80,7 +80,7 @@ describe("/api", () => {
         });
     });
     test("405 - invalid method", () => {
-      const methods = ["post", "delete", "put", "patch"];
+      const methods = ["delete", "put", "patch"];
       const promiseArr = methods.map((method) => {
         return request(app)
           [method]("/api/topics")
@@ -201,7 +201,7 @@ describe("/api", () => {
   });
   /********************* ARTICLES ********************/
   describe("/articles", () => {
-    describe("GET", () => {
+    describe("GET ALL", () => {
       test("GET ALL articles responds with an array of article objects", () => {
         return request(app)
           .get("/api/articles")
@@ -283,6 +283,25 @@ describe("/api", () => {
             expect(articles[0].topic).toBe("mitch");
           });
       });
+      test.only("GET articles responds with an object containing a total_count key", () => {
+        return request(app)
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body: { total_count } }) => {
+            expect(typeof total_count).toBe("number");
+            expect(total_count).toBe(12);
+          });
+      });
+      test.only("GET articles total_count key ignores limit", () => {
+        return request(app)
+          .get("/api/articles?limit=3")
+          .expect(200)
+          .then(({ body: { total_count } }) => {
+            expect(total_count).toBe(12);
+          });
+      });
+    });
+    describe("GET by ID", () => {
       test("GET article by article ID responds with an article object", () => {
         return request(app)
           .get("/api/articles/3")
@@ -310,6 +329,7 @@ describe("/api", () => {
           });
       });
     });
+
     describe("POST", () => {
       test("POST an article responds with the created article", () => {
         return request(app)

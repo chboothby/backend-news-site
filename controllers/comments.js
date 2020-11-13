@@ -20,9 +20,7 @@ exports.getAllComments = (req, res, next) => {
   const { sort_by, order, limit, page } = req.query;
   fetchAllComments(article_id, sort_by, order, limit, page)
     .then((comments) => {
-      return comments.length === 0
-        ? Promise.reject({ status: 404, msg: "Page limit exceeded" })
-        : res.status(200).send({ comments });
+      res.status(200).send({ comments });
     })
     .catch(next);
 };

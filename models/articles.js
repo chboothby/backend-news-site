@@ -43,6 +43,7 @@ exports.fetchAllArticles = (
   page
 ) => {
   const offset = (page - 1) * limit || 0;
+
   return connection
     .select(
       "articles.author",
@@ -116,5 +117,37 @@ exports.removeArticleById = (article_id) => {
       return response === 1
         ? response
         : Promise.reject({ status: 404, msg: "Article does not exist" });
+    });
+};
+
+exports.fetchArticleCount = (author, topic) => {
+  return connection
+    .select(
+      "articles.author",
+      "title",
+      "articles.article_id",
+      "topic",
+      "articles.created_at",
+      "articles.votes"
+    )
+    .modify((queryBuilder) => {
+      if (author) {
+        queryBuilder.where("articles.author", "LIKE", author);
+      }
+      if (topic) {
+        queryBuilder.where("articles.topic", "LIKE", topic);
+      }
+    })
+    .from("articles")
+    .leftJoin("comments", "comments.article_id", "articles.article_id")
+    .groupBy(
+      "articles.author",
+      "articles.title",
+      "articles.body",
+      "articles.article_id"
+    )
+    .count("comments.article_id AS comment_count")
+    .then((articles) => {
+      return articles.length;
     });
 };

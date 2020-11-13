@@ -18,7 +18,12 @@ exports.fetchAllComments = (article_id, sort_by, order, limit = 10, page) => {
     .where("article_id", "=", article_id)
     .orderBy(sort_by || "created_at", order || "asc")
     .limit(limit)
-    .offset(offset);
+    .offset(offset)
+    .then((comments) => {
+      return comments.length === 0
+        ? Promise.reject({ status: 404, msg: "Page limit exceeded" })
+        : comments;
+    });
 };
 
 exports.updateCommentById = (comment_id, inc_votes) => {
