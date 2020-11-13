@@ -1,4 +1,5 @@
 exports.handlePSQLErrors = (err, req, res, next) => {
+  console.log(err);
   const codes = {
     "22P02": { status: 400, msg: "Invalid input type" },
     42703: { status: 400, msg: "Invalid input type" },

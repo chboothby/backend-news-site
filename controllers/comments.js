@@ -3,6 +3,7 @@ const {
   fetchAllComments,
   updateCommentById,
   removeCommentById,
+  fetchNumberOfComments,
 } = require("../models/comments");
 
 exports.postNewComment = (req, res, next) => {
@@ -18,9 +19,14 @@ exports.postNewComment = (req, res, next) => {
 exports.getAllComments = (req, res, next) => {
   const { article_id } = req.params;
   const { sort_by, order, limit, page } = req.query;
-  fetchAllComments(article_id, sort_by, order, limit, page)
-    .then((comments) => {
-      res.status(200).send({ comments });
+  Promise.all([
+    fetchAllComments(article_id, sort_by, order, limit, page),
+    fetchNumberOfComments(article_id),
+  ])
+    .then((results) => {
+      const comments = results[0];
+      const total_count = results[1];
+      res.status(200).send({ comments, total_count });
     })
     .catch(next);
 };

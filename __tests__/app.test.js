@@ -734,6 +734,15 @@ describe("/api", () => {
                 expect(comments[0].body).toBe("Ambidextrous marsupial");
               });
           });
+          test("GET all comments has a key of total_count which displays the number of comments, ignoring any limit", () => {
+            return request(app)
+              .get("/api/articles/1/comments")
+              .expect(200)
+              .then(({ body: { total_count } }) => {
+                expect(total_count).toEqual(expect.any(Number));
+                expect(total_count).toBe(13);
+              });
+          });
           test("400 bad request if invalid page number", () => {
             return request(app)
               .get("/api/articles/1/comments?limit=3&page=0")

@@ -45,3 +45,13 @@ exports.updateCommentById = (comment_id, inc_votes) => {
 exports.removeCommentById = (comment_id) => {
   return connection("comments").where("comment_id", "=", comment_id).del();
 };
+
+exports.fetchNumberOfComments = (article_id) => {
+  return connection
+    .select("comment_id", "author", "votes", "created_at", "body")
+    .from("comments")
+    .where("article_id", "=", article_id)
+    .then((comments) => {
+      return comments.length;
+    });
+};
