@@ -8,12 +8,10 @@ exports.handlePSQLErrors = (err, req, res, next) => {
     23502: { status: 400, msg: "Incomplete request" },
   };
 
-  for (code in codes) {
-    if (err.code == code) {
-      res.status(codes[code].status).send({ msg: codes[code].msg });
-    }
-  }
-  next(err);
+  const code = err.code;
+  if (codes[code]) {
+    res.status(codes[code].status).send({ msg: codes[code].msg });
+  } else next(err);
 };
 exports.handleCustomErrors = (err, req, res, next) => {
   if (err.status) {
